@@ -1,7 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { BoardStatus } from './boards-status.enum';
 import { CreateBoardDTO } from './dto/create-board.dto';
-import { Repository } from 'typeorm';
+import { DeleteResult, Repository } from 'typeorm';
 import { Board } from './boards.entity';
 
 @Injectable()
@@ -28,18 +28,19 @@ export class BoardsService {
     }
 
     async getBoardById(id: number): Promise<Board> {
-        const found = await this.boardRepository.findOne({
-            where: { id: id },
-        });
+        const found = await this.boardRepository.findOne({ where: { id: id } });
         if (!found) {
-            throw new NotFoundException(`Can't find board by id ${id}`);
+            throw new NotFoundException(`Can't find Board with id ${id}`);
         }
         return found;
     }
 
-    async deleteBoard(id: number): Promise<void> {
-        const found = await this.getBoardById(id);
-        this.boardRepository.remove(found);
+    async deleteBoard(id: number): Promise<DeleteResult> {
+        const result = await this.boardRepository.delete(id);
+        if (result.affected === 0) {
+            throw new NotFoundException(`Can't find Board with id ${id}`);
+        }
+        return result;
     }
 
     async updateBoardStatus(id: number, status: BoardStatus): Promise<Board> {
