@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from "bcryptjs";
 import { Repository } from 'typeorm';
 
@@ -32,6 +32,17 @@ export class AuthService {
             } else {
                 throw new InternalServerErrorException();
             }
+        }
+    }
+
+    async signIn(createUserDTO: CreateUserDTO): Promise<UserSerializer> {
+        const { name, password } = createUserDTO;
+        const user = await this.userRepository.findOne({ where: { name: name } });
+
+        if( user && ( await bcrypt.compare(password, user.password) ) ) {
+            return { id: user.id, name: user.name };
+        } else {
+            throw new UnauthorizedException('login failed');
         }
     }
 }
