@@ -1,4 +1,5 @@
-import { Body, Controller, Post, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards, ValidationPipe } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { UserSerializer } from './user.model';
@@ -15,5 +16,11 @@ export class AuthController {
     @Post('/signin')
     signIn(@Body(ValidationPipe) createUserDTO: CreateUserDTO): Promise<UserSerializer> {
         return this.authService.signIn(createUserDTO);
+    }
+
+    @Post('/test')
+    @UseGuards(AuthGuard())
+    test(@Req() req) {
+        console.log(req.user)
     }
 }
