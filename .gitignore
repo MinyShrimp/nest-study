@@ -38,3 +38,5 @@ lerna-debug.log*
 /src/database/database.config.ts
 /db/data/*.*
 .env
+
+/src/auth/auth.config.ts

@@ -1,4 +1,5 @@
 import { ConflictException, Inject, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from "bcryptjs";
 import { Repository } from 'typeorm';
 
@@ -11,6 +12,7 @@ export class AuthService {
     constructor(
         @Inject('USER_REPOSITORY')
         private userRepository: Repository<User>,
+        private jwtService: JwtService
     ) {}
 
     async signUp(createUserDTO: CreateUserDTO): Promise<UserSerializer> {
@@ -25,7 +27,7 @@ export class AuthService {
                 password: hashedPassword,
                 salt: salt
             });
-            return { id: user.id, name: user.name };
+            return { name: user.name };
         } catch (e) {
             if(e.sqlState === '23000') {
                 throw new ConflictException('Existing name');
@@ -40,7 +42,10 @@ export class AuthService {
         const user = await this.userRepository.findOne({ where: { name: name } });
 
         if( user && ( await bcrypt.compare(password, user.password) ) ) {
-            return { id: user.id, name: user.name };
+            const payload = { name: user.name };
+            const accessToken = await this.jwtService.sign(payload);
+
+            return { name: user.name, accessToken: accessToken };
         } else {
             throw new UnauthorizedException('login failed');
         }
