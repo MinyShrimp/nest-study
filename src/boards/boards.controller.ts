@@ -30,21 +30,21 @@ export class BoardsController {
         return this.boardsService.createBoard(createBoardDTO);
     }
 
-    // @Get('/:id')
-    // getBoardById(@Param('id') id: string): Board {
-    //     return this.boardsService.getBoardById(id);
-    // }
+    @Get('/:id')
+    getBoardById(@Param('id') id: number): Promise<Board> {
+        return this.boardsService.getBoardById(id);
+    }
 
-    // @Delete('/:id')
-    // deleteBoard(@Param('id') id: string): void {
-    //     this.boardsService.deleteBoard(id);
-    // }
+    @Delete('/:id')
+    deleteBoard(@Param('id') id: number): void {
+        this.boardsService.deleteBoard(id);
+    }
 
-    // @Patch('/:id/status')
-    // updateBoardStatus(
-    //     @Param('id') id: string,
-    //     @Body('status', BoardStatusValidationPipe) status: BoardStatus,
-    // ): Board {
-    //     return this.boardsService.updateBoardStatus(id, status);
-    // }
+    @Patch('/:id/status')
+    updateBoardStatus(
+        @Param('id') id: number,
+        @Body('status', BoardStatusValidationPipe) status: BoardStatus,
+    ): Promise<Board> {
+        return this.boardsService.updateBoardStatus(id, status);
+    }
 }

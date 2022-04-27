@@ -27,23 +27,25 @@ export class BoardsService {
         return board;
     }
 
-    // getBoardById(id: string): Board {
-    //     // this.boardRepository.findOne()
-    //     const found = this.boards.find((board) => board.id === id);
-    //     if (!found) {
-    //         throw new NotFoundException(`Can't find board by id ${id}`);
-    //     }
-    //     return found;
-    // }
+    async getBoardById(id: number): Promise<Board> {
+        const found = await this.boardRepository.findOne({
+            where: { id: id },
+        });
+        if (!found) {
+            throw new NotFoundException(`Can't find board by id ${id}`);
+        }
+        return found;
+    }
 
-    // deleteBoard(id: string): void {
-    //     const found = this.getBoardById(id);
-    //     this.boards = this.boards.filter((board) => board.id !== found.id);
-    // }
+    async deleteBoard(id: number): Promise<void> {
+        const found = await this.getBoardById(id);
+        this.boardRepository.remove(found);
+    }
 
-    // updateBoardStatus(id: string, status: BoardStatus): Board {
-    //     const board = this.getBoardById(id);
-    //     board.status = status;
-    //     return board;
-    // }
+    async updateBoardStatus(id: number, status: BoardStatus): Promise<Board> {
+        const found = await this.getBoardById(id);
+        found.status = status;
+        await this.boardRepository.save(found);
+        return found;
+    }
 }

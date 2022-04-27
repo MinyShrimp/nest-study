@@ -36,5 +36,5 @@ lerna-debug.log*
 
 # db config
 /src/database/database.config.ts
-/db
+/db/data/*.*
 .env
