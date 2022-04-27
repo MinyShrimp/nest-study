@@ -1,7 +1,10 @@
 import { ConflictException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import * as bcrypt from "bcryptjs";
 import { Repository } from 'typeorm';
+
 import { CreateUserDTO } from './dto/create-user.dto';
 import { User } from './user.entity';
+import { UserSerializer } from './user.model';
 
 @Injectable()
 export class AuthService {
@@ -10,14 +13,19 @@ export class AuthService {
         private userRepository: Repository<User>,
     ) {}
 
-    async signUp(createUserDTO: CreateUserDTO): Promise<User> {
+    async signUp(createUserDTO: CreateUserDTO): Promise<UserSerializer> {
         const { name, password } = createUserDTO;
+
+        const salt = await bcrypt.genSalt();
+        const hashedPassword = await bcrypt.hash(password, salt);
+
         try {
             const user = await this.userRepository.save({
                 name: name,
-                password: password,
+                password: hashedPassword,
+                salt: salt
             });
-            return user;
+            return { id: user.id, name: user.name };
         } catch (e) {
             if(e.sqlState === '23000') {
                 throw new ConflictException('Existing name');
