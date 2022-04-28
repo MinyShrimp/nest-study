@@ -3,6 +3,7 @@ import { BoardStatus } from './boards-status.enum';
 import { CreateBoardDTO } from './dto/create-board.dto';
 import { DeleteResult, Repository } from 'typeorm';
 import { Board } from './boards.entity';
+import { User } from 'src/auth/user.entity';
 
 @Injectable()
 export class BoardsService {
@@ -11,17 +12,28 @@ export class BoardsService {
         private boardRepository: Repository<Board>,
     ) {}
 
-    async getAllBoards(): Promise<Board[]> {
-        return await this.boardRepository.find();
+    async getAllBoards(user: User): Promise<Board[]> {
+        const query = this.boardRepository.createQueryBuilder('board');
+
+        query.where('board.userId = :userId', { userId: user.id });
+
+        const boards = await query.getMany();
+
+        return boards;
+        // return await this.boardRepository.find({ where: { user: user } });
     }
 
-    async createBoard(createBoardDTO: CreateBoardDTO): Promise<Board> {
+    async createBoard(
+        createBoardDTO: CreateBoardDTO,
+        user: User
+    ): Promise<Board> {
         const { title, description, status } = createBoardDTO;
 
         const board = await this.boardRepository.save({
             title: title,
             description: description,
             status: status ?? BoardStatus.PUBLIC,
+            user: user
         });
 
         return board;
@@ -35,12 +47,17 @@ export class BoardsService {
         return found;
     }
 
-    async deleteBoard(id: number): Promise<DeleteResult> {
-        const result = await this.boardRepository.delete(id);
-        if (result.affected === 0) {
+    async deleteBoard(id: number, user: User): Promise<DeleteResult> {
+        const query = await this.boardRepository.createQueryBuilder('board')
+            .leftJoinAndSelect('board.user', 'user')
+            .where('board.id = :id and board.userId = :userId', { id: id, userId: user.id })
+            .delete()
+            .execute();
+
+        if (query.affected === 0) {
             throw new NotFoundException(`Can't find Board with id ${id}`);
         }
-        return result;
+        return query;
     }
 
     async updateBoardStatus(id: number, status: BoardStatus): Promise<Board> {
