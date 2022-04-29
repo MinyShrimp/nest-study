@@ -35,8 +35,6 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 # db config
-/src/database/database.config.ts
 /db/data/*.*
 .env
-
-/src/auth/auth.config.ts
+config/*.*
